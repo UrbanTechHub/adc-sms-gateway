@@ -1,11 +1,12 @@
-import { Clock, CheckCircle, XCircle, AlertCircle, Phone, Inbox } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Phone, Inbox, Users, Code, FileText } from "lucide-react";
 import { format } from "date-fns";
 
 interface Message {
   id: string;
-  recipient: string;
+  recipients: string[];
   smtpFrom: string;
   message: string;
+  messageType: "text" | "html";
   status: "sent" | "pending" | "failed";
   timestamp: Date;
 }
@@ -44,19 +45,23 @@ const StatusBadge = ({ status }: { status: Message["status"] }) => {
 };
 
 const MessageHistory = ({ messages }: MessageHistoryProps) => {
+  const totalRecipients = messages.reduce((acc, m) => acc + m.recipients.length, 0);
+
   return (
     <div className="glass-card p-6 slide-up" style={{ animationDelay: "0.1s" }}>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg bg-secondary border border-border flex items-center justify-center">
-          <Clock className="w-5 h-5 text-muted-foreground" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Message History
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Recent SMS transmissions
-          </p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-secondary border border-border flex items-center justify-center">
+            <Clock className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">
+              Message History
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {totalRecipients} total recipients
+            </p>
+          </div>
         </div>
       </div>
 
@@ -77,13 +82,46 @@ const MessageHistory = ({ messages }: MessageHistoryProps) => {
               key={msg.id}
               className="p-4 rounded-lg bg-muted/30 border border-border/50 hover:border-border transition-colors fade-in"
             >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span className="font-mono">{msg.recipient}</span>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  {msg.recipients.length > 1 ? (
+                    <Users className="w-4 h-4 text-foreground" />
+                  ) : (
+                    <Phone className="w-4 h-4 text-foreground" />
+                  )}
+                  <span className="text-sm font-medium text-foreground font-mono">
+                    {msg.recipients.length > 1 
+                      ? `${msg.recipients.length} recipients` 
+                      : msg.recipients[0]}
+                  </span>
                 </div>
-                <StatusBadge status={msg.status} />
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                    msg.messageType === "html" 
+                      ? "bg-secondary text-secondary-foreground" 
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {msg.messageType === "html" ? <Code className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                    {msg.messageType.toUpperCase()}
+                  </span>
+                  <StatusBadge status={msg.status} />
+                </div>
               </div>
+
+              {msg.recipients.length > 1 && (
+                <div className="mb-2 flex flex-wrap gap-1">
+                  {msg.recipients.slice(0, 3).map((r, i) => (
+                    <span key={i} className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
+                      {r}
+                    </span>
+                  ))}
+                  {msg.recipients.length > 3 && (
+                    <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
+                      +{msg.recipients.length - 3} more
+                    </span>
+                  )}
+                </div>
+              )}
 
               <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                 {msg.message}
@@ -97,23 +135,6 @@ const MessageHistory = ({ messages }: MessageHistoryProps) => {
           ))}
         </div>
       )}
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: hsl(var(--muted));
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: hsl(var(--border));
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: hsl(var(--muted-foreground) / 0.5);
-        }
-      `}</style>
     </div>
   );
 };

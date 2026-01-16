@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { Activity, Zap, Send, CheckCircle, XCircle, LogOut } from "lucide-react";
+import { Activity, Zap, Send, CheckCircle, XCircle, LogOut, Users, Mail } from "lucide-react";
 import SMSComposer from "./SMSComposer";
 import MessageHistory from "./MessageHistory";
 import { Button } from "@/components/ui/button";
 
 interface Message {
   id: string;
-  recipient: string;
+  recipients: string[];
   smtpFrom: string;
   message: string;
+  messageType: "text" | "html";
   status: "sent" | "pending" | "failed";
   timestamp: Date;
 }
@@ -25,9 +26,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   };
 
   const stats = {
-    total: messages.length,
-    delivered: messages.filter((m) => m.status === "sent").length,
-    failed: messages.filter((m) => m.status === "failed").length,
+    batches: messages.length,
+    delivered: messages.filter((m) => m.status === "sent").reduce((acc, m) => acc + m.recipients.length, 0),
+    failed: messages.filter((m) => m.status === "failed").reduce((acc, m) => acc + m.recipients.length, 0),
+    totalRecipients: messages.reduce((acc, m) => acc + m.recipients.length, 0),
   };
 
   return (
@@ -36,15 +38,15 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         {/* Header */}
         <header className="flex items-center justify-between mb-8 slide-up">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center animate-pulse-glow">
-              <Zap className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 rounded-xl bg-foreground/5 border border-border flex items-center justify-center">
+              <Mail className="w-6 h-6 text-foreground" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-foreground">
-                SMTP→SMS Gateway
+              <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">
+                SMTP → SMS
               </h1>
               <p className="text-sm text-muted-foreground font-mono">
-                v1.0.0 • Active
+                Gateway v2.0 • Bulk Enabled
               </p>
             </div>
           </div>
@@ -55,28 +57,40 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             className="text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            Exit
           </Button>
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="glass-card p-4 slide-up" style={{ animationDelay: "0.05s" }}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Send className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-lg bg-foreground/5 flex items-center justify-center">
+                <Send className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Sent</p>
+                <p className="text-2xl font-bold text-foreground">{stats.batches}</p>
+                <p className="text-xs text-muted-foreground">Batches</p>
               </div>
             </div>
           </div>
 
           <div className="glass-card p-4 slide-up" style={{ animationDelay: "0.1s" }}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-success" />
+              <div className="w-10 h-10 rounded-lg bg-foreground/5 flex items-center justify-center">
+                <Users className="w-5 h-5 text-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stats.totalRecipients}</p>
+                <p className="text-xs text-muted-foreground">Recipients</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 slide-up" style={{ animationDelay: "0.15s" }}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-foreground/10 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-foreground" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{stats.delivered}</p>
@@ -85,7 +99,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             </div>
           </div>
 
-          <div className="glass-card p-4 slide-up" style={{ animationDelay: "0.15s" }}>
+          <div className="glass-card p-4 slide-up" style={{ animationDelay: "0.2s" }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
                 <XCircle className="w-5 h-5 text-destructive" />
@@ -105,9 +119,9 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         </div>
 
         {/* Footer */}
-        <footer className="mt-12 text-center slide-up" style={{ animationDelay: "0.2s" }}>
+        <footer className="mt-12 text-center slide-up" style={{ animationDelay: "0.25s" }}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 border border-border/50">
-            <Activity className="w-4 h-4 text-success animate-pulse" />
+            <Activity className="w-4 h-4 text-foreground animate-pulse" />
             <span className="text-xs text-muted-foreground font-mono">
               Gateway Status: Operational
             </span>
