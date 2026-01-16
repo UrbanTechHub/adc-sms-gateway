@@ -85,23 +85,23 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-card p-8 md:p-12 w-full max-w-md slide-up">
+      <div className="glass-card p-6 sm:p-8 w-full max-w-sm slide-up">
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-foreground/5 border border-border mb-6">
-            <Mail className="w-10 h-10 text-foreground" />
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-foreground/5 border border-border mb-4">
+            <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-foreground" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 tracking-tight">
             SMTP → SMS
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs sm:text-sm">
             Enter access PIN to continue
           </p>
         </div>
 
         {/* PIN Input */}
         <div
-          className={`flex justify-center gap-2 md:gap-3 mb-8`}
+          className="flex justify-center gap-1.5 sm:gap-2 mb-6"
           style={{
             animation: shake
               ? "shake 0.5s cubic-bezier(.36,.07,.19,.97) both"
@@ -126,7 +126,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className={`pin-input ${
+              className={`w-10 h-12 sm:w-11 sm:h-14 text-center text-lg sm:text-xl font-bold rounded-lg bg-input border-2 border-border focus:border-foreground focus:ring-2 focus:ring-foreground/20 outline-none transition-all ${
                 error
                   ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                   : digit
@@ -140,7 +140,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
 
         {/* Error Message */}
         {error && (
-          <div className="flex items-center justify-center gap-2 text-destructive text-sm mb-6 fade-in">
+          <div className="flex items-center justify-center gap-2 text-destructive text-sm mb-4 fade-in">
             <AlertCircle className="w-4 h-4" />
             <span>Invalid access PIN</span>
           </div>
