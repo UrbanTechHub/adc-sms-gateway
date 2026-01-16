@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Lock, Shield, AlertCircle } from "lucide-react";
+import { Lock, Shield, AlertCircle, Mail } from "lucide-react";
 
 interface PinAccessProps {
   onSuccess: () => void;
@@ -88,11 +88,11 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
       <div className="glass-card p-8 md:p-12 w-full max-w-md slide-up">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border border-primary/30 mb-6 animate-pulse-glow">
-            <Shield className="w-10 h-10 text-primary" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-foreground/5 border border-border mb-6">
+            <Mail className="w-10 h-10 text-foreground" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            SMTP→SMS Gateway
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 tracking-tight">
+            SMTP → SMS
           </h1>
           <p className="text-muted-foreground text-sm">
             Enter access PIN to continue
@@ -101,9 +101,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
 
         {/* PIN Input */}
         <div
-          className={`flex justify-center gap-2 md:gap-3 mb-8 ${
-            shake ? "animate-[shake_0.5s_ease-in-out]" : ""
-          }`}
+          className={`flex justify-center gap-2 md:gap-3 mb-8`}
           style={{
             animation: shake
               ? "shake 0.5s cubic-bezier(.36,.07,.19,.97) both"
@@ -132,7 +130,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
                 error
                   ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                   : digit
-                  ? "border-primary glow-border"
+                  ? "border-foreground/50"
                   : ""
               }`}
               autoComplete="off"
