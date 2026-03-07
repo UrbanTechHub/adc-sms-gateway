@@ -1,19 +1,15 @@
 import { useState, useRef } from "react";
-import { Send, Phone, MessageSquare, Mail, Loader2, Users, Code, FileText, Upload, X } from "lucide-react";
+import { Send, Phone, MessageSquare, Loader2, Users, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Message {
   id: string;
   recipients: string[];
-  smtpFrom: string;
   message: string;
-  messageType: "text" | "html";
   status: "sent" | "pending" | "failed";
   timestamp: Date;
 }
@@ -26,9 +22,7 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
   const [singleRecipient, setSingleRecipient] = useState("");
   const [bulkRecipients, setBulkRecipients] = useState("");
   const [uploadedNumbers, setUploadedNumbers] = useState<string[]>([]);
-  const [smtpFrom, setSmtpFrom] = useState("");
   const [message, setMessage] = useState("");
-  const [isHtml, setIsHtml] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [inputMode, setInputMode] = useState<"single" | "bulk" | "csv">("single");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,13 +67,10 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
     reader.onload = (event) => {
       const text = event.target?.result as string;
       const lines = text.split(/[\r\n]+/).filter(line => line.trim());
-      
-      // Parse CSV - assume first column contains phone numbers
+
       const numbers: string[] = [];
       lines.forEach((line, index) => {
-        // Skip header row if it looks like a header
         if (index === 0 && /phone|number|mobile|cell/i.test(line)) return;
-        
         const columns = line.split(',');
         const number = columns[0]?.trim();
         if (number && /^[\d\s\+\-\(\)]+$/.test(number)) {
@@ -124,15 +115,12 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
 
     setIsSending(true);
 
-    // Simulate API call with slight delay per recipient
     await new Promise((resolve) => setTimeout(resolve, 800 + Math.min(recipientCount * 100, 2000)));
 
     const newMessage: Message = {
       id: Date.now().toString(),
       recipients: recipientList,
-      smtpFrom: smtpFrom || "system@gateway.local",
       message,
-      messageType: isHtml ? "html" : "text",
       status: Math.random() > 0.1 ? "sent" : "failed",
       timestamp: new Date(),
     };
@@ -142,7 +130,7 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
     if (newMessage.status === "sent") {
       toast({
         title: "Messages sent",
-        description: `${recipientCount} SMS${recipientCount > 1 ? "s" : ""} delivered successfully`,
+        description: `${recipientCount} SMS${recipientCount > 1 ? "s" : ""} delivered via Twilio`,
       });
       setSingleRecipient("");
       setBulkRecipients("");
@@ -170,54 +158,27 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
           <div>
             <h2 className="text-base sm:text-lg font-semibold text-foreground">Compose SMS</h2>
             <p className="text-xs text-muted-foreground">
-              SMTP → SMS Gateway
+              Send via Twilio
             </p>
           </div>
-        </div>
-        
-        {/* Message Type Toggle */}
-        <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-secondary/50 self-start sm:self-auto">
-          <FileText className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${!isHtml ? "text-foreground" : "text-muted-foreground"}`} />
-          <Switch
-            id="message-type"
-            checked={isHtml}
-            onCheckedChange={setIsHtml}
-            className="scale-90 sm:scale-100"
-          />
-          <Code className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isHtml ? "text-foreground" : "text-muted-foreground"}`} />
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* SMTP From */}
-        <div className="space-y-2">
-          <label className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            SMTP From (optional)
-          </label>
-          <Input
-            type="email"
-            placeholder="sender@domain.com"
-            value={smtpFrom}
-            onChange={(e) => setSmtpFrom(e.target.value)}
-            className="glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 text-sm"
-          />
-        </div>
-
-        {/* Recipients - Tabbed Interface */}
+        {/* Recipients */}
         <div className="space-y-2">
           <label className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Recipients
           </label>
-          
+
           <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "single" | "bulk" | "csv")}>
             <TabsList className="grid w-full grid-cols-3 h-9">
               <TabsTrigger value="single" className="text-xs sm:text-sm">Single</TabsTrigger>
               <TabsTrigger value="bulk" className="text-xs sm:text-sm">Bulk</TabsTrigger>
               <TabsTrigger value="csv" className="text-xs sm:text-sm">CSV Upload</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="single" className="mt-3">
               <Input
                 type="tel"
@@ -227,7 +188,7 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
                 className="glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 font-mono text-sm"
               />
             </TabsContent>
-            
+
             <TabsContent value="bulk" className="mt-3">
               <Textarea
                 placeholder={`+1 234 567 8900\n+1 987 654 3210\n+44 20 7946 0958\n\nSeparate with new lines, commas, or semicolons`}
@@ -236,7 +197,7 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
                 className="glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 min-h-[100px] resize-none font-mono text-sm"
               />
             </TabsContent>
-            
+
             <TabsContent value="csv" className="mt-3">
               <input
                 ref={fileInputRef}
@@ -245,7 +206,7 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
                 onChange={handleFileUpload}
                 className="hidden"
               />
-              
+
               {uploadedNumbers.length === 0 ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
@@ -290,7 +251,7 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
               )}
             </TabsContent>
           </Tabs>
-          
+
           <div className="flex justify-between text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Phone className="w-3 h-3" />
@@ -306,27 +267,19 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
         <div className="space-y-2">
           <label className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
             <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Message Content ({isHtml ? "HTML" : "Plain Text"})
+            Message
           </label>
           <Textarea
-            placeholder={isHtml 
-              ? "<p>Hello <b>World</b>!</p>\n<p>Your HTML message here...</p>" 
-              : "Enter your SMS message..."
-            }
+            placeholder="Enter your SMS message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className={`glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 min-h-[100px] sm:min-h-[140px] resize-none text-sm ${isHtml ? "font-mono" : ""}`}
+            className="glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 min-h-[100px] sm:min-h-[140px] resize-none text-sm"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              {isHtml ? <Code className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
-              {isHtml ? "HTML mode" : "Standard SMS (160 char limit)"}
+            <span>Standard SMS (160 char limit)</span>
+            <span className={message.length > 140 ? "text-destructive" : ""}>
+              {message.length}/160
             </span>
-            {!isHtml && (
-              <span className={message.length > 140 ? "text-destructive" : ""}>
-                {message.length}/160
-              </span>
-            )}
           </div>
         </div>
 

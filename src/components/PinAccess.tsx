@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Lock, Shield, AlertCircle, Mail } from "lucide-react";
+import { Lock, AlertCircle, MessageSquare } from "lucide-react";
 
 interface PinAccessProps {
   onSuccess: () => void;
@@ -29,7 +29,6 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Check if complete
     if (index === 5 && value) {
       const enteredPin = newPin.join("");
       if (enteredPin === CORRECT_PIN) {
@@ -62,7 +61,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
       }
     }
     setPin(newPin);
-    
+
     const lastFilledIndex = newPin.findIndex((p) => !p);
     const focusIndex = lastFilledIndex === -1 ? 5 : lastFilledIndex;
     inputRefs.current[focusIndex]?.focus();
@@ -86,20 +85,18 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="glass-card p-6 sm:p-8 w-full max-w-sm slide-up">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-foreground/5 border border-border mb-4">
-            <Mail className="w-7 h-7 sm:w-8 sm:h-8 text-foreground" />
+            <MessageSquare className="w-7 h-7 sm:w-8 sm:h-8 text-foreground" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 tracking-tight">
-            SMTP → SMS
+            SMS Gateway
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm">
             Enter access PIN to continue
           </p>
         </div>
 
-        {/* PIN Input */}
         <div
           className="flex justify-center gap-1.5 sm:gap-2 mb-6"
           style={{
@@ -138,7 +135,6 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
           ))}
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="flex items-center justify-center gap-2 text-destructive text-sm mb-4 fade-in">
             <AlertCircle className="w-4 h-4" />
@@ -146,7 +142,6 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
           </div>
         )}
 
-        {/* Footer */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-xs">
             <Lock className="w-3 h-3" />
