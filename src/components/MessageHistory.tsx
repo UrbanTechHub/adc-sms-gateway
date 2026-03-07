@@ -1,12 +1,10 @@
-import { Clock, CheckCircle, XCircle, AlertCircle, Phone, Inbox, Users, Code, FileText } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Phone, Inbox, Users } from "lucide-react";
 import { format } from "date-fns";
 
 interface Message {
   id: string;
   recipients: string[];
-  smtpFrom: string;
   message: string;
-  messageType: "text" | "html";
   status: "sent" | "pending" | "failed";
   timestamp: Date;
 }
@@ -90,22 +88,12 @@ const MessageHistory = ({ messages }: MessageHistoryProps) => {
                     <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground shrink-0" />
                   )}
                   <span className="text-xs sm:text-sm font-medium text-foreground font-mono truncate">
-                    {msg.recipients.length > 1 
-                      ? `${msg.recipients.length} recipients` 
+                    {msg.recipients.length > 1
+                      ? `${msg.recipients.length} recipients`
                       : msg.recipients[0]}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                  <span className={`inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${
-                    msg.messageType === "html" 
-                      ? "bg-secondary text-secondary-foreground" 
-                      : "bg-muted text-muted-foreground"
-                  }`}>
-                    {msg.messageType === "html" ? <Code className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
-                    <span className="hidden sm:inline">{msg.messageType.toUpperCase()}</span>
-                  </span>
-                  <StatusBadge status={msg.status} />
-                </div>
+                <StatusBadge status={msg.status} />
               </div>
 
               {msg.recipients.length > 1 && (
@@ -127,8 +115,7 @@ const MessageHistory = ({ messages }: MessageHistoryProps) => {
                 {msg.message}
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground/70">
-                <span className="font-mono truncate max-w-[150px] sm:max-w-none">{msg.smtpFrom}</span>
+              <div className="flex items-center justify-end text-xs text-muted-foreground/70">
                 <span className="shrink-0">{format(msg.timestamp, "HH:mm:ss")}</span>
               </div>
             </div>

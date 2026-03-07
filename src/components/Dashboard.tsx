@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Activity, Zap, Send, CheckCircle, XCircle, LogOut, Users, Mail } from "lucide-react";
+import { Activity, Send, CheckCircle, XCircle, LogOut, Users, MessageSquare } from "lucide-react";
 import SMSComposer from "./SMSComposer";
 import MessageHistory from "./MessageHistory";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 interface Message {
   id: string;
   recipients: string[];
-  smtpFrom: string;
   message: string;
-  messageType: "text" | "html";
   status: "sent" | "pending" | "failed";
   timestamp: Date;
 }
@@ -39,14 +37,14 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         <header className="flex items-center justify-between mb-6 sm:mb-8 slide-up">
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-foreground/5 border border-border flex items-center justify-center shrink-0">
-              <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
+              <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
             </div>
             <div>
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground tracking-tight">
-                SMTP → SMS
+                SMS Gateway
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground font-mono">
-                Gateway v2.0 • Bulk Enabled
+                Twilio • Bulk Enabled
               </p>
             </div>
           </div>
@@ -123,7 +121,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-muted/30 border border-border/50">
             <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-foreground animate-pulse" />
             <span className="text-xs text-muted-foreground font-mono">
-              Gateway Status: Operational
+              Twilio Gateway: Operational
             </span>
           </div>
         </footer>
