@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Send, Phone, MessageSquare, Loader2, Users, Upload, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -115,34 +116,63 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
 
     setIsSending(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 800 + Math.min(recipientCount * 100, 2000)));
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      recipients: recipientList,
-      message,
-      status: Math.random() > 0.1 ? "sent" : "failed",
-      timestamp: new Date(),
-    };
-
-    onMessageSent(newMessage);
-
-    if (newMessage.status === "sent") {
-      toast({
-        title: "Messages sent",
-        description: `${recipientCount} SMS${recipientCount > 1 ? "s" : ""} delivered via Twilio`,
+    try {
+      const { data, error } = await supabase.functions.invoke("send-sms", {
+        body: { recipients: recipientList, message },
       });
-      setSingleRecipient("");
-      setBulkRecipients("");
-      setUploadedNumbers([]);
-      setMessage("");
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } else {
+
+      if (error) throw new Error(error.message);
+
+      const status = data.failed === 0 ? "sent" : data.sent === 0 ? "failed" : "sent";
+
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        recipients: recipientList,
+        message,
+        status,
+        timestamp: new Date(),
+      };
+
+      onMessageSent(newMessage);
+
+      if (data.sent > 0) {
+        toast({
+          title: "Messages sent",
+          description: `${data.sent} of ${data.total} SMS delivered via Twilio`,
+        });
+        setSingleRecipient("");
+        setBulkRecipients("");
+        setUploadedNumbers([]);
+        setMessage("");
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+
+      if (data.failed > 0) {
+        const failedNumbers = data.results
+          ?.filter((r: any) => r.status === "failed")
+          .map((r: any) => `${r.to}: ${r.error}`)
+          .join(", ");
+        toast({
+          title: `${data.failed} message${data.failed > 1 ? "s" : ""} failed`,
+          description: failedNumbers || "Some messages could not be delivered",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
       toast({
-        title: "Delivery failed",
-        description: "Some messages could not be delivered",
+        title: "Send failed",
+        description: err.message || "Could not reach the SMS gateway",
         variant: "destructive",
       });
+
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        recipients: recipientList,
+        message,
+        status: "failed",
+        timestamp: new Date(),
+      };
+      onMessageSent(newMessage);
     }
 
     setIsSending(false);
