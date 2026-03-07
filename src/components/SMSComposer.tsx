@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Send, Phone, MessageSquare, Loader2, Users, Upload, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
