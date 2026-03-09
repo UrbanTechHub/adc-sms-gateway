@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Send, Phone, MessageSquare, Loader2, Users, Upload, X } from "lucide-react";
+import { Send, Phone, MessageSquare, Loader2, Users, Upload, X, Image, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +26,11 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [inputMode, setInputMode] = useState<"single" | "bulk" | "csv">("single");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   const parseRecipients = (input: string): string[] => {
     return input
@@ -104,6 +108,70 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
     }
   };
 
+  const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPG, PNG, GIF, or WebP image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be under 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMediaFile(file);
+    const url = URL.createObjectURL(file);
+    setMediaPreview(url);
+  };
+
+  const clearMedia = () => {
+    setMediaFile(null);
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaPreview(null);
+    if (mediaInputRef.current) mediaInputRef.current.value = '';
+  };
+
+  const uploadMedia = async (): Promise<string | null> => {
+    if (!mediaFile) return null;
+    setIsUploadingMedia(true);
+    try {
+      const ext = mediaFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const { error } = await supabase.storage
+        .from('mms-media')
+        .upload(fileName, mediaFile, { contentType: mediaFile.type });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('mms-media')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (err: any) {
+      toast({
+        title: "Image upload failed",
+        description: err.message,
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
   const handleSend = async () => {
     if (recipientCount === 0 || !message) {
       toast({
@@ -117,8 +185,18 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
     setIsSending(true);
 
     try {
+      // Upload media if attached
+      let mediaUrl: string | null = null;
+      if (mediaFile) {
+        mediaUrl = await uploadMedia();
+        if (!mediaUrl) {
+          setIsSending(false);
+          return;
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke("send-sms", {
-        body: { recipients: recipientList, message },
+        body: { recipients: recipientList, message, ...(mediaUrl && { mediaUrl }) },
       });
 
       if (error) throw new Error(error.message);
@@ -138,12 +216,13 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
       if (data.sent > 0) {
         toast({
           title: "Messages sent",
-          description: `${data.sent} of ${data.total} SMS delivered via Twilio`,
+          description: `${data.sent} of ${data.total} ${mediaUrl ? 'MMS' : 'SMS'} delivered via Twilio`,
         });
         setSingleRecipient("");
         setBulkRecipients("");
         setUploadedNumbers([]);
         setMessage("");
+        clearMedia();
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
 
@@ -300,34 +379,90 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
             Message
           </label>
           <Textarea
-            placeholder="Enter your SMS message..."
+            placeholder={mediaFile ? "Enter your MMS message..." : "Enter your SMS message..."}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 min-h-[100px] sm:min-h-[140px] resize-none text-sm"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Standard SMS (160 char limit)</span>
-            <span className={message.length > 140 ? "text-destructive" : ""}>
-              {message.length}/160
+            <span>{mediaFile ? "MMS (no char limit)" : "Standard SMS (160 char limit)"}</span>
+            <span className={!mediaFile && message.length > 140 ? "text-destructive" : ""}>
+              {message.length}{!mediaFile && "/160"}
             </span>
           </div>
+        </div>
+
+        {/* Media Attachment */}
+        <div className="space-y-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <Image className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Image Attachment
+            <span className="text-xs text-muted-foreground/60">(optional – sends as MMS)</span>
+          </label>
+
+          <input
+            ref={mediaInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleMediaSelect}
+            className="hidden"
+          />
+
+          {!mediaFile ? (
+            <div
+              onClick={() => mediaInputRef.current?.click()}
+              className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-foreground/50 transition-colors"
+            >
+              <Paperclip className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Click to attach an image
+              </p>
+              <p className="text-xs text-muted-foreground/60 mt-0.5">
+                JPG, PNG, GIF, WebP · Max 5MB
+              </p>
+            </div>
+          ) : (
+            <div className="border border-border rounded-lg p-3 flex items-center gap-3">
+              {mediaPreview && (
+                <img
+                  src={mediaPreview}
+                  alt="Attachment preview"
+                  className="w-16 h-16 object-cover rounded-md border border-border"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{mediaFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(mediaFile.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearMedia}
+                className="h-7 px-2 text-muted-foreground hover:text-foreground shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Send Button */}
         <Button
           onClick={handleSend}
-          disabled={isSending || recipientCount === 0 || !message}
+          disabled={isSending || isUploadingMedia || recipientCount === 0 || !message}
           className="w-full h-10 sm:h-12 btn-primary text-sm sm:text-base"
         >
           {isSending ? (
             <>
               <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
-              Sending to {recipientCount} recipient{recipientCount !== 1 ? "s" : ""}...
+              {isUploadingMedia ? "Uploading image..." : `Sending to ${recipientCount} recipient${recipientCount !== 1 ? "s" : ""}...`}
             </>
           ) : (
             <>
               <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              Send {recipientCount > 1 ? `${recipientCount} Messages` : "SMS"}
+              Send {recipientCount > 1 ? `${recipientCount} ` : ""}{mediaFile ? "MMS" : "SMS"}
             </>
           )}
         </Button>
