@@ -185,8 +185,18 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
     setIsSending(true);
 
     try {
+      // Upload media if attached
+      let mediaUrl: string | null = null;
+      if (mediaFile) {
+        mediaUrl = await uploadMedia();
+        if (!mediaUrl) {
+          setIsSending(false);
+          return;
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke("send-sms", {
-        body: { recipients: recipientList, message },
+        body: { recipients: recipientList, message, ...(mediaUrl && { mediaUrl }) },
       });
 
       if (error) throw new Error(error.message);
