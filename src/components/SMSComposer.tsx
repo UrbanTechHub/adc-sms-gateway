@@ -108,6 +108,70 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
     }
   };
 
+  const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPG, PNG, GIF, or WebP image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be under 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMediaFile(file);
+    const url = URL.createObjectURL(file);
+    setMediaPreview(url);
+  };
+
+  const clearMedia = () => {
+    setMediaFile(null);
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaPreview(null);
+    if (mediaInputRef.current) mediaInputRef.current.value = '';
+  };
+
+  const uploadMedia = async (): Promise<string | null> => {
+    if (!mediaFile) return null;
+    setIsUploadingMedia(true);
+    try {
+      const ext = mediaFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const { error } = await supabase.storage
+        .from('mms-media')
+        .upload(fileName, mediaFile, { contentType: mediaFile.type });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('mms-media')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (err: any) {
+      toast({
+        title: "Image upload failed",
+        description: err.message,
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
   const handleSend = async () => {
     if (recipientCount === 0 || !message) {
       toast({
