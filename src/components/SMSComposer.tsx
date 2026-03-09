@@ -26,7 +26,11 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [inputMode, setInputMode] = useState<"single" | "bulk" | "csv">("single");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   const parseRecipients = (input: string): string[] => {
     return input
