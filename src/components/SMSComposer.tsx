@@ -216,12 +216,13 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
       if (data.sent > 0) {
         toast({
           title: "Messages sent",
-          description: `${data.sent} of ${data.total} SMS delivered via Twilio`,
+          description: `${data.sent} of ${data.total} ${mediaUrl ? 'MMS' : 'SMS'} delivered via Twilio`,
         });
         setSingleRecipient("");
         setBulkRecipients("");
         setUploadedNumbers([]);
         setMessage("");
+        clearMedia();
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
 
