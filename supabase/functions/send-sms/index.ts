@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { recipients, message } = await req.json();
+    const { recipients, message, mediaUrl } = await req.json();
 
     if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
       return new Response(
@@ -46,6 +46,11 @@ Deno.serve(async (req) => {
           From: fromNumber,
           Body: message,
         });
+
+        // Add media URL for MMS if provided
+        if (mediaUrl) {
+          body.append('MediaUrl', mediaUrl);
+        }
 
         const response = await fetch(url, {
           method: 'POST',
