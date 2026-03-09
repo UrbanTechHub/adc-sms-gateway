@@ -379,34 +379,90 @@ const SMSComposer = ({ onMessageSent }: SMSComposerProps) => {
             Message
           </label>
           <Textarea
-            placeholder="Enter your SMS message..."
+            placeholder={mediaFile ? "Enter your MMS message..." : "Enter your SMS message..."}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="glass-input bg-input border-border focus:border-foreground focus:ring-foreground/20 min-h-[100px] sm:min-h-[140px] resize-none text-sm"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Standard SMS (160 char limit)</span>
-            <span className={message.length > 140 ? "text-destructive" : ""}>
-              {message.length}/160
+            <span>{mediaFile ? "MMS (no char limit)" : "Standard SMS (160 char limit)"}</span>
+            <span className={!mediaFile && message.length > 140 ? "text-destructive" : ""}>
+              {message.length}{!mediaFile && "/160"}
             </span>
           </div>
+        </div>
+
+        {/* Media Attachment */}
+        <div className="space-y-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <Image className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Image Attachment
+            <span className="text-xs text-muted-foreground/60">(optional – sends as MMS)</span>
+          </label>
+
+          <input
+            ref={mediaInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleMediaSelect}
+            className="hidden"
+          />
+
+          {!mediaFile ? (
+            <div
+              onClick={() => mediaInputRef.current?.click()}
+              className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-foreground/50 transition-colors"
+            >
+              <Paperclip className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Click to attach an image
+              </p>
+              <p className="text-xs text-muted-foreground/60 mt-0.5">
+                JPG, PNG, GIF, WebP · Max 5MB
+              </p>
+            </div>
+          ) : (
+            <div className="border border-border rounded-lg p-3 flex items-center gap-3">
+              {mediaPreview && (
+                <img
+                  src={mediaPreview}
+                  alt="Attachment preview"
+                  className="w-16 h-16 object-cover rounded-md border border-border"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{mediaFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(mediaFile.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearMedia}
+                className="h-7 px-2 text-muted-foreground hover:text-foreground shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Send Button */}
         <Button
           onClick={handleSend}
-          disabled={isSending || recipientCount === 0 || !message}
+          disabled={isSending || isUploadingMedia || recipientCount === 0 || !message}
           className="w-full h-10 sm:h-12 btn-primary text-sm sm:text-base"
         >
           {isSending ? (
             <>
               <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
-              Sending to {recipientCount} recipient{recipientCount !== 1 ? "s" : ""}...
+              {isUploadingMedia ? "Uploading image..." : `Sending to ${recipientCount} recipient${recipientCount !== 1 ? "s" : ""}...`}
             </>
           ) : (
             <>
               <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              Send {recipientCount > 1 ? `${recipientCount} Messages` : "SMS"}
+              Send {recipientCount > 1 ? `${recipientCount} ` : ""}{mediaFile ? "MMS" : "SMS"}
             </>
           )}
         </Button>
