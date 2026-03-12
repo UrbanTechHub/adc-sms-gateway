@@ -8,7 +8,7 @@ interface PinAccessProps {
 const CORRECT_PIN = "LOLUPEE5890";
 
 const PinAccess = ({ onSuccess }: PinAccessProps) => {
-  const [pin, setPin] = useState<string[]>(["", "", "", "", "", ""]);
+  const [pin, setPin] = useState<string[]>(["", "", "", "", "", "", "", "", "", ""]);
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
