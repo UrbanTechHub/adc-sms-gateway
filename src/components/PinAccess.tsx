@@ -5,7 +5,7 @@ interface PinAccessProps {
   onSuccess: () => void;
 }
 
-const CORRECT_PIN = "ADC353";
+const CORRECT_PIN = "LOLUPEE5890";
 
 const PinAccess = ({ onSuccess }: PinAccessProps) => {
   const [pin, setPin] = useState<string[]>(["", "", "", "", "", ""]);
