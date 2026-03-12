@@ -5,10 +5,10 @@ interface PinAccessProps {
   onSuccess: () => void;
 }
 
-const CORRECT_PIN = "ADC353";
+const CORRECT_PIN = "LOLUPEE5890";
 
 const PinAccess = ({ onSuccess }: PinAccessProps) => {
-  const [pin, setPin] = useState<string[]>(["", "", "", "", "", ""]);
+  const [pin, setPin] = useState<string[]>(["", "", "", "", "", "", "", "", "", ""]);
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -25,11 +25,11 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
     setPin(newPin);
     setError(false);
 
-    if (value && index < 5) {
+    if (value && index < 9) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    if (index === 5 && value) {
+    if (index === 9 && value) {
       const enteredPin = newPin.join("");
       if (enteredPin === CORRECT_PIN) {
         onSuccess();
@@ -38,7 +38,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
         setShake(true);
         setTimeout(() => {
           setShake(false);
-          setPin(["", "", "", "", "", ""]);
+          setPin(["", "", "", "", "", "", "", "", "", ""]);
           inputRefs.current[0]?.focus();
         }, 600);
       }
@@ -53,7 +53,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").toUpperCase().slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").toUpperCase().slice(0, 10);
     const newPin = [...pin];
     for (let i = 0; i < pastedData.length; i++) {
       if (/^[A-Z0-9]$/.test(pastedData[i])) {
@@ -63,7 +63,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
     setPin(newPin);
 
     const lastFilledIndex = newPin.findIndex((p) => !p);
-    const focusIndex = lastFilledIndex === -1 ? 5 : lastFilledIndex;
+    const focusIndex = lastFilledIndex === -1 ? 9 : lastFilledIndex;
     inputRefs.current[focusIndex]?.focus();
 
     if (newPin.every((p) => p)) {
@@ -75,7 +75,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
         setShake(true);
         setTimeout(() => {
           setShake(false);
-          setPin(["", "", "", "", "", ""]);
+          setPin(["", "", "", "", "", "", "", "", "", ""]);
           inputRefs.current[0]?.focus();
         }, 600);
       }
