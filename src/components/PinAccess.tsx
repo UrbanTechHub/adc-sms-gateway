@@ -25,11 +25,11 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
     setPin(newPin);
     setError(false);
 
-    if (value && index < 5) {
+    if (value && index < 9) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    if (index === 5 && value) {
+    if (index === 9 && value) {
       const enteredPin = newPin.join("");
       if (enteredPin === CORRECT_PIN) {
         onSuccess();
