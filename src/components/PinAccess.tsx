@@ -75,7 +75,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
         setShake(true);
         setTimeout(() => {
           setShake(false);
-          setPin(["", "", "", "", "", ""]);
+          setPin(["", "", "", "", "", "", "", "", "", ""]);
           inputRefs.current[0]?.focus();
         }, 600);
       }
