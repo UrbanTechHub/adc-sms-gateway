@@ -53,7 +53,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").toUpperCase().slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").toUpperCase().slice(0, 10);
     const newPin = [...pin];
     for (let i = 0; i < pastedData.length; i++) {
       if (/^[A-Z0-9]$/.test(pastedData[i])) {
@@ -63,7 +63,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
     setPin(newPin);
 
     const lastFilledIndex = newPin.findIndex((p) => !p);
-    const focusIndex = lastFilledIndex === -1 ? 5 : lastFilledIndex;
+    const focusIndex = lastFilledIndex === -1 ? 9 : lastFilledIndex;
     inputRefs.current[focusIndex]?.focus();
 
     if (newPin.every((p) => p)) {
