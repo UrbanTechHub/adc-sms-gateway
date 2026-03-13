@@ -83,8 +83,8 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-card p-6 sm:p-8 w-full max-w-sm slide-up">
+    <div className="min-h-screen flex items-center justify-center p-3">
+      <div className="glass-card p-4 sm:p-6 w-full max-w-xs slide-up">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-foreground/5 border border-border mb-4">
             <MessageSquare className="w-7 h-7 sm:w-8 sm:h-8 text-foreground" />
@@ -98,7 +98,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
         </div>
 
         <div
-          className="flex justify-center gap-1 mb-6"
+          className="flex justify-center gap-0.5 mb-6 px-2"
           style={{
             animation: shake
               ? "shake 0.5s cubic-bezier(.36,.07,.19,.97) both"
@@ -123,7 +123,7 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className={`w-7 h-9 sm:w-8 sm:h-10 text-center text-base sm:text-lg font-bold rounded-md bg-input border-2 border-border focus:border-foreground focus:ring-2 focus:ring-foreground/20 outline-none transition-all ${
+              className={`w-6 h-8 sm:w-7 sm:h-9 text-center text-sm sm:text-base font-bold rounded bg-input border-2 border-border focus:border-foreground focus:ring-2 focus:ring-foreground/20 outline-none transition-all ${
                 error
                   ? "border-destructive focus:border-destructive focus:ring-destructive/30"
                   : digit
