@@ -83,8 +83,8 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-card p-6 sm:p-8 w-full max-w-sm slide-up">
+    <div className="min-h-screen flex items-center justify-center p-3">
+      <div className="glass-card p-4 sm:p-6 w-full max-w-xs slide-up">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-foreground/5 border border-border mb-4">
             <MessageSquare className="w-7 h-7 sm:w-8 sm:h-8 text-foreground" />
