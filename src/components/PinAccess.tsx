@@ -6,77 +6,33 @@ interface PinAccessProps {
 }
 
 const CORRECT_PIN = "LOLUPEE5890";
+const PIN_LENGTH = 10;
 
 const PinAccess = ({ onSuccess }: PinAccessProps) => {
-  const [pin, setPin] = useState<string[]>(["", "", "", "", "", "", "", "", "", ""]);
+  const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRefs.current[0]?.focus();
+    inputRef.current?.focus();
   }, []);
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^[A-Za-z0-9]?$/.test(value)) return;
-
-    const newPin = [...pin];
-    newPin[index] = value.toUpperCase();
-    setPin(newPin);
+  const handleChange = (value: string) => {
+    const filtered = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, PIN_LENGTH);
+    setPin(filtered);
     setError(false);
 
-    if (value && index < 9) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    if (index === 9 && value) {
-      const enteredPin = newPin.join("");
-      if (enteredPin === CORRECT_PIN) {
+    if (filtered.length === PIN_LENGTH) {
+      if (filtered === CORRECT_PIN) {
         onSuccess();
       } else {
         setError(true);
         setShake(true);
         setTimeout(() => {
           setShake(false);
-          setPin(["", "", "", "", "", "", "", "", "", ""]);
-          inputRefs.current[0]?.focus();
-        }, 600);
-      }
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !pin[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").toUpperCase().slice(0, 10);
-    const newPin = [...pin];
-    for (let i = 0; i < pastedData.length; i++) {
-      if (/^[A-Z0-9]$/.test(pastedData[i])) {
-        newPin[i] = pastedData[i];
-      }
-    }
-    setPin(newPin);
-
-    const lastFilledIndex = newPin.findIndex((p) => !p);
-    const focusIndex = lastFilledIndex === -1 ? 9 : lastFilledIndex;
-    inputRefs.current[focusIndex]?.focus();
-
-    if (newPin.every((p) => p)) {
-      const enteredPin = newPin.join("");
-      if (enteredPin === CORRECT_PIN) {
-        onSuccess();
-      } else {
-        setError(true);
-        setShake(true);
-        setTimeout(() => {
-          setShake(false);
-          setPin(["", "", "", "", "", "", "", "", "", ""]);
-          inputRefs.current[0]?.focus();
+          setPin("");
+          inputRef.current?.focus();
         }, 600);
       }
     }
@@ -98,7 +54,8 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
         </div>
 
         <div
-          className="flex justify-center gap-0.5 mb-6 px-2"
+          className="relative flex justify-center gap-1 mb-6 px-2 cursor-text"
+          onClick={() => inputRef.current?.focus()}
           style={{
             animation: shake
               ? "shake 0.5s cubic-bezier(.36,.07,.19,.97) both"
@@ -113,25 +70,34 @@ const PinAccess = ({ onSuccess }: PinAccessProps) => {
               40%, 60% { transform: translateX(4px); }
             }
           `}</style>
-          {pin.map((digit, index) => (
-            <input
+
+          {/* Hidden input */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={pin}
+            onChange={(e) => handleChange(e.target.value)}
+            maxLength={PIN_LENGTH}
+            className="absolute opacity-0 w-0 h-0"
+            autoComplete="off"
+          />
+
+          {/* Visual boxes */}
+          {Array.from({ length: PIN_LENGTH }).map((_, index) => (
+            <div
               key={index}
-              ref={(el) => (inputRefs.current[index] = el)}
-              type="text"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              onPaste={handlePaste}
-              className={`w-6 h-8 sm:w-7 sm:h-9 text-center text-sm sm:text-base font-bold rounded bg-input border-2 border-border focus:border-foreground focus:ring-2 focus:ring-foreground/20 outline-none transition-all ${
+              className={`w-6 h-8 sm:w-7 sm:h-9 flex items-center justify-center text-sm sm:text-base font-bold rounded bg-input border-2 transition-all ${
                 error
-                  ? "border-destructive focus:border-destructive focus:ring-destructive/30"
-                  : digit
+                  ? "border-destructive"
+                  : pin.length === index
+                  ? "border-foreground ring-2 ring-foreground/20"
+                  : pin[index]
                   ? "border-foreground/50"
-                  : ""
+                  : "border-border"
               }`}
-              autoComplete="off"
-            />
+            >
+              {pin[index] || ""}
+            </div>
           ))}
         </div>
 
