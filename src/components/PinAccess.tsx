@@ -6,7 +6,7 @@ interface PinAccessProps {
 }
 
 const CORRECT_PIN = "LOLUPEE5890";
-const PIN_LENGTH = 10;
+const PIN_LENGTH = CORRECT_PIN.length;
 
 const PinAccess = ({ onSuccess }: PinAccessProps) => {
   const [pin, setPin] = useState("");
